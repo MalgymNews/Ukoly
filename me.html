@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Převod kg → me (hmotnost elektronu)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; line-height: 1.4; }
+    .card { max-width: 680px; padding: 16px; border: 1px solid #ddd; border-radius: 12px; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #bbb; border-radius: 10px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .out { margin-top: 16px; padding: 12px; background: #f7f7f7; border-radius: 10px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    small { color: #555; }
+    button { margin-top: 12px; padding: 10px 12px; font-size: 16px; border: 1px solid #bbb; border-radius: 10px; background: white; cursor: pointer; }
+    button:hover { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Převod kg → me</h1>
+    <p>
+      Použitý vztah (podle zadání): <span class="mono">1 g = 1,1 × 10<sup>27</sup> me</span><br>
+      Z toho plyne: <span class="mono">1 kg = 1,1 × 10<sup>30</sup> me</span>
+    </p>
+
+    <div class="row">
+      <div>
+        <label for="kg">Hmotnost v kg</label>
+        <input id="kg" type="number" inputmode="decimal" placeholder="např. 0.5" step="any">
+        <small>Zadej kilogramy, výsledek se dopočítá automaticky.</small>
+      </div>
+
+      <div>
+        <label for="me">Výsledek v me</label>
+        <input id="me" type="text" readonly>
+        <small>Formát: vědecký zápis.</small>
+      </div>
+    </div>
+
+    <div class="out">
+      <div><strong>Výsledek (vědecky):</strong> <span id="meSci" class="mono">—</span></div>
+      <div><strong>Výsledek (celé číslo, pokud to jde):</strong> <span id="meInt" class="mono">—</span></div>
+    </div>
+
+    <button id="copyBtn" type="button">Zkopírovat vědecký zápis</button>
+  </div>
+
+  <script>
+    // Podle zadání: 1 g = 1.1 × 10^27 me
+    // 1 kg = 1000 g => 1 kg = 1.1 × 10^30 me
+    const ME_PER_KG = 1.1e30;
+
+    const kgEl = document.getElementById('kg');
+    const meEl = document.getElementById('me');
+    const meSciEl = document.getElementById('meSci');
+    const meIntEl = document.getElementById('meInt');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function formatScientific(x) {
+      if (!Number.isFinite(x)) return '—';
+      // toExponential(6) = 6 desetinných míst; můžeš změnit podle potřeby
+      return x.toExponential(6).replace('e+', '×10^').replace('e', '×10^');
+    }
+
+    function update() {
+      const kg = parseFloat(kgEl.value);
+
+      if (!Number.isFinite(kg)) {
+        meEl.value = '';
+        meSciEl.textContent = '—';
+        meIntEl.textContent = '—';
+        return;
+      }
+
+      const me = kg * ME_PER_KG;
+
+      // Zobrazení
+      meEl.value = me.toExponential(6);
+      meSciEl.textContent = formatScientific(me);
+
+      // Pokus o celé číslo pomocí BigInt (jen když je kg zadané jako "bezpečně" čitelné číslo)
+      // Pro typické hodnoty to může být obrovské; pokud je mimo možnosti, necháme pomlčku.
+      try {
+        // Převod: me = kg * 1.1e30 není přesné pro BigInt, proto pro BigInt použijeme řetězcový postup jen pro kg,
+        // která je celé číslo nebo má omezený počet desetinných míst.
+        const kgStr = kgEl.value.trim();
+        if (!kgStr) throw new Error('empty');
+
+        // Normalizace desetinné tečky/čárky
+        const s = kgStr.replace(',', '.');
+
+        // Rozklad na celé a desetinné
+        const parts = s.split('.');
+        const whole = parts[0] || '0';
+        const frac = (parts[1] || '');
+        const fracLen = frac.length;
+
+        // kg jako zlomek: kg = (wholefrac) / 10^fracLen
+        const numerator = BigInt((whole + frac).replace(/^(-?)0+(?=\d)/, '$1'));
+        const denomPow = BigInt(10) ** BigInt(fracLen);
+
+        // me = kg * 1.1e30 = kg * (11/10) * 10^30 = kg * 11 * 10^29
+        const factor = BigInt(11) * (BigInt(10) ** BigInt(29));
+
+        const meNumerator = numerator * factor;
+        if (meNumerator % denomPow !== BigInt(0)) {
+          meIntEl.textContent = 'nelze přesně jako celé číslo (má desetinnou část)';
+        } else {
+          meIntEl.textContent = (meNumerator / denomPow).toString();
+        }
+      } catch {
+        meIntEl.textContent = '—';
+      }
+    }
+
+    kgEl.addEventListener('input', update);
+
+    copyBtn.addEventListener('click', async () => {
+      const text = meEl.value || '';
+      if (!text) return;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    update();
+  </script>
+</body>
+</html>
