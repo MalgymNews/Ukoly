@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>kg ↔ me převodník</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;max-width:720px}
+    .box{border:1px solid #ddd;border-radius:12px;padding:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-weight:700;margin:10px 0 6px}
+    input,select,button{width:100%;padding:10px;border:1px solid #bbb;border-radius:10px;font-size:16px}
+    .out{margin-top:12px;background:#f6f6f6;border-radius:10px;padding:12px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-word}
+    footer{margin-top:12px;font-size:13px;color:#555}
+  </style>
+</head>
+<body>
+  <h1>kg ↔ me převodník</h1>
+  <p>Platí: <b>1 g = 1,1 × 10<sup>27</sup> me</b> ⇒ <b>1 kg = 1,1 × 10<sup>30</sup> me</b></p>
+
+  <div class="box">
+    <div class="row">
+      <div>
+        <label for="mode">Směr</label>
+        <select id="mode">
+          <option value="kg2me">kg → me</option>
+          <option value="me2kg">me → kg</option>
+        </select>
+      </div>
+      <div>
+        <label id="inLabel" for="val">Hodnota v kg</label>
+        <input id="val" type="text" inputmode="decimal" placeholder="např. 0.5" />
+      </div>
+    </div>
+
+    <div class="out">
+      <div><b>Výsledek:</b></div>
+      <div id="result" class="mono">—</div>
+    </div>
+  </div>
+
+  <footer>Kredit: nápad: Veronika bogushova, provedení: Tomáš Janča</footer>
+
+  <script>
+    const ME_PER_KG = 1.1e30;
+
+    const modeEl = document.getElementById('mode');
+    const valEl = document.getElementById('val');
+    const inLabel = document.getElementById('inLabel');
+    const resultEl = document.getElementById('result');
+
+    function updateLabels(){
+      if (modeEl.value === 'kg2me') {
+        inLabel.textContent = 'Hodnota v kg';
+        valEl.placeholder = 'např. 0.5';
+      } else {
+        inLabel.textContent = 'Hodnota v me';
+        valEl.placeholder = 'např. 1.1e30';
+      }
+    }
+
+    function update(){
+      const s = (valEl.value || '').trim().replace(',', '.');
+      const x = Number(s);
+
+      if (!s || !Number.isFinite(x)) {
+        resultEl.textContent = '—';
+        return;
+      }
+
+      const y = (modeEl.value === 'kg2me') ? (x * ME_PER_KG) : (x / ME_PER_KG);
+      resultEl.textContent = y.toExponential(6);
+    }
+
+    modeEl.addEventListener('change', () => { updateLabels(); update(); });
+    valEl.addEventListener('input', update);
+
+    updateLabels();
+    update();
+  </script>
+</body>
+</html>
