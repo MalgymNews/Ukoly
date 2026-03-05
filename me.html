@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Převod kg ↔ me (hmotnost elektronu)</title>
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#0f1b3a;
+      --card: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1100px 700px at 20% 15%, rgba(120,160,255,.28), transparent 60%),
+        radial-gradient(900px 650px at 80% 40%, rgba(255,140,200,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+    .wrap{
+      width:min(920px, 100%);
+    }
+    .hero{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:16px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing:-0.02em;
+    }
+    .sub{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.35;
+    }
+    .badge{
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space:nowrap;
+      backdrop-filter: blur(10px);
+    }
+
+    .card{
+      border: 1px solid var(--stroke);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .cardTop{
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .seg{
+      display:flex;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      overflow:hidden;
+      background: rgba(0,0,0,.12);
+    }
+    .seg button{
+      appearance:none;
+      border:0;
+      padding:10px 12px;
+      color: var(--muted);
+      background: transparent;
+      cursor:pointer;
+      font-weight:600;
+      font-size: 13px;
+      letter-spacing:.01em;
+    }
+    .seg button.active{
+      color: var(--text);
+      background: rgba(255,255,255,.12);
+    }
+    .hint{
+      color: var(--muted2);
+      font-size: 13px;
+      line-height:1.4;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 18px;
+    }
+    @media (min-width: 820px){
+      .grid{ grid-template-columns: 1.1fr .9fr; }
+    }
+
+    .panel{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .panel h2{
+      margin:0 0 10px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight:700;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+    }
+
+    label{
+      display:block;
+      margin: 10px 0 6px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .inputRow{
+      display:flex;
+      gap: 10px;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    input{
+      flex: 1 1 260px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline: none;
+      font-size: 16px;
+    }
+    input::placeholder{ color: rgba(255,255,255,.35); }
+    input:focus{
+      border-color: rgba(180,210,255,.45);
+      box-shadow: 0 0 0 4px rgba(100,150,255,.16);
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .btn:hover{ background: rgba(255,255,255,.12); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{
+      background: rgba(0,0,0,.18);
+    }
+
+    .outBox{
+      margin-top: 12px;
+      border: 1px dashed rgba(255,255,255,.20);
+      background: rgba(255,255,255,.05);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px 10px;
+      align-items:center;
+      font-size: 14px;
+    }
+    .k{ color: var(--muted2); }
+    .v{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      word-break: break-word;
+    }
+
+    .note{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    footer{
+      margin-top: 14px;
+      color: rgba(255,255,255,.55);
+      font-size: 12.5px;
+      text-align:center;
+    }
+    footer span{
+      display:inline-block;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.12);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* malé upozornění */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.35);
+      color: rgba(255,255,255,.85);
+      font-size: 13px;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .22s ease, transform .22s ease;
+      backdrop-filter: blur(12px);
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1>Převod hmotnosti: kg ↔ me</h1>
+        <p class="sub">
+          Jednotka <b>me</b> je tvoje jednotka „hmotnost elektronu“. Podle zadání platí:
+          <span style="white-space:nowrap;"><b>1 g = 1,1 × 10<sup>27</sup> me</b></span>
+          (tedy <span style="white-space:nowrap;"><b>1 kg = 1,1 × 10<sup>30</sup> me</b></span>).
+        </p>
+      </div>
+      <div class="badge">Offline • 1 soubor • Bez knihoven</div>
+    </div>
+
+    <div class="card">
+      <div class="cardTop">
+        <div class="seg" role="tablist" aria-label="Směr převodu">
+          <button id="tabKgToMe" class="active" type="button" role="tab" aria-selected="true">kg → me</button>
+          <button id="tabMeToKg" type="button" role="tab" aria-selected="false">me → kg</button>
+        </div>
+        <div class="hint" id="hintText">
+          Zadej kilogramy. Výsledek se počítá automaticky.
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- VSTUP -->
+        <div class="panel">
+          <h2>Vstup</h2>
+
+          <div id="modeKgToMe">
+            <label for="kg">Hmotnost v kg</label>
+            <div class="inputRow">
+              <input id="kg" type="number" inputmode="decimal" placeholder="např. 0.5" step="any" />
+            </div>
+            <div class="btnRow">
+              <button class="btn" id="copyMeSci" type="button">Zkopírovat me (vědecky)</button>
+              <button class="btn secondary" id="clearKg" type="button">Vymazat</button>
+              <button class="btn secondary" id="swapToMeToKg" type="button">Přepnout na me → kg</button>
+            </div>
+          </div>
+
+          <div id="modeMeToKg" style="display:none;">
+            <label for="meIn">Hmotnost v me</label>
+            <div class="inputRow">
+              <input id="meIn" type="text" inputmode="decimal" placeholder="např. 1.1e30 nebo 1100000000000000000000000000000" />
+            </div>
+            <div class="btnRow">
+              <button class="btn" id="copyKg" type="button">Zkopírovat kg</button>
+              <button class="btn secondary" id="clearMe" type="button">Vymazat</button>
+              <button class="btn secondary" id="swapToKgToMe" type="button">Přepnout na kg → me</button>
+            </div>
+          </div>
+
+          <div class="note">
+            Tip: V poli <b>me</b> můžeš použít vědecký zápis (<span class="v">1.1e30</span>) nebo celé číslo.
+            Desetinnou čárku můžeš psát jako čárku i tečku.
+          </div>
+        </div>
+
+        <!-- VÝSTUP -->
+        <div class="panel">
+          <h2>Výstup</h2>
+
+          <div class="outBox">
+            <div class="kv">
+              <div class="k">me (vědecky)</div>
+              <div class="v" id="outMeSci">—</div>
+
+              <div class="k">me (raw)</div>
+              <div class="v" id="outMeRaw">—</div>
+
+              <div class="k">kg (vědecky)</div>
+              <div class="v" id="outKgSci">—</div>
+
+              <div class="k">kg (raw)</div>
+              <div class="v" id="outKgRaw">—</div>
+            </div>
+          </div>
+
+          <div class="note" id="formulaNote">
+            Přepočet: <span class="v">me = kg × 1.1 × 10^30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>Kredit: nápad: Veronika bogushova, provedení: Tomáš Janča</span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">Zkopírováno</div>
+
+  <script>
+    // Zadání: 1 g = 1.1 × 10^27 me  =>  1 kg = 1.1 × 10^30 me
+    const ME_PER_KG = 1.1e30;
+
+    const tabKgToMe = document.getElementById('tabKgToMe');
+    const tabMeToKg = document.getElementById('tabMeToKg');
+
+    const modeKgToMe = document.getElementById('modeKgToMe');
+    const modeMeToKg = document.getElementById('modeMeToKg');
+
+    const hintText = document.getElementById('hintText');
+    const formulaNote = document.getElementById('formulaNote');
+
+    const kgEl = document.getElementById('kg');
+    const meInEl = document.getElementById('meIn');
+
+    const outMeSci = document.getElementById('outMeSci');
+    const outMeRaw = document.getElementById('outMeRaw');
+    const outKgSci = document.getElementById('outKgSci');
+    const outKgRaw = document.getElementById('outKgRaw');
+
+    const copyMeSciBtn = document.getElementById('copyMeSci');
+    const copyKgBtn = document.getElementById('copyKg');
+
+    const clearKgBtn = document.getElementById('clearKg');
+    const clearMeBtn = document.getElementById('clearMe');
+
+    const swapToMeToKg = document.getElementById('swapToMeToKg');
+    const swapToKgToMe = document.getElementById('swapToKgToMe');
+
+    const toast = document.getElementById('toast');
+
+    let mode = "kg2me"; // nebo "me2kg"
+
+    function showToast(text){
+      toast.textContent = text || "Zkopírováno";
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 900);
+    }
+
+    function normalizeNumberString(s){
+      return (s || '').trim().replace(/\s+/g,'').replace(',', '.');
+    }
+
+    function formatScientific(x, digits=6){
+      if (!Number.isFinite(x)) return '—';
+      // 1.234567e+30 -> 1.234567 × 10^30
+      const exp = x.toExponential(digits);
+      const m = exp.match(/^([+-]?\d(?:\.\d+)?)e([+-]?\d+)$/);
+      if (!m) return exp;
+      return `${m[1]} × 10^${m[2]}`;
+    }
+
+    function safeParseToNumber(s){
+      const n = Number(s);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    function setMode(newMode){
+      mode = newMode;
+
+      const kgActive = (mode === "kg2me");
+
+      tabKgToMe.classList.toggle('active', kgActive);
+      tabMeToKg.classList.toggle('active', !kgActive);
+      tabKgToMe.setAttribute('aria-selected', kgActive ? 'true' : 'false');
+      tabMeToKg.setAttribute('aria-selected', !kgActive ? 'true' : 'false');
+
+      modeKgToMe.style.display = kgActive ? '' : 'none';
+      modeMeToKg.style.display = kgActive ? 'none' : '';
+
+      if (kgActive){
+        hintText.textContent = 'Zadej kilogramy. Výsledek se počítá automaticky.';
+        formulaNote.innerHTML = 'Přepočet: <span class="v">me = kg × 1.1 × 10^30</span>';
+        kgEl.focus();
+      } else {
+        hintText.textContent = 'Zadej me. Výsledek se počítá automaticky.';
+        formulaNote.innerHTML = 'Přepočet: <span class="v">kg = me ÷ (1.1 × 10^30)</span>';
+        meInEl.focus();
+      }
+
+      update();
+    }
+
+    function updateFromKg(){
+      const kg = parseFloat(kgEl.value);
+      if (!Number.isFinite(kg)){
+        outMeSci.textContent = '—';
+        outMeRaw.textContent = '—';
+        // zároveň ukážeme i kg hodnoty
+        outKgSci.textContent = '—';
+        outKgRaw.textContent = '—';
+        return;
+      }
+
+      const me = kg * ME_PER_KG;
+
+      outMeSci.textContent = formatScientific(me, 6);
+      outMeRaw.textContent = me.toExponential(6);
+
+      outKgSci.textContent = formatScientific(kg, 6);
+      outKgRaw.textContent = String(kg);
+    }
+
+    function updateFromMe(){
+      const s = normalizeNumberString(meInEl.value);
+      if (!s){
+        outMeSci.textContent = '—';
+        outMeRaw.textContent = '—';
+        outKgSci.textContent = '—';
+        outKgRaw.textContent = '—';
+        return;
+      }
+
+      // Primárně číselně (Number). Pro extrémně velká celá čísla je to limitované,
+      // ale pro typický vědecký zápis (1.1e30) to funguje.
+      const me = safeParseToNumber(s);
+      if (!Number.isFinite(me)){
+        outMeSci.textContent = '—';
+        outMeRaw.textContent = 'neplatné číslo';
+        outKgSci.textContent = '—';
+        outKgRaw.textContent = '—';
+        return;
+      }
+
+      const kg = me / ME_PER_KG;
+
+      outMeSci.textContent = formatScientific(me, 6);
+      outMeRaw.textContent = me.toExponential(6);
+
+      outKgSci.textContent = formatScientific(kg, 10);
+      outKgRaw.textContent = kg.toString();
+    }
+
+    function update(){
+      if (mode === "kg2me") updateFromKg();
+      else updateFromMe();
+    }
+
+    async function copyText(text){
+      if (!text || text === '—') return;
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("Zkopírováno");
+      } catch {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showToast("Zkopírováno"); } catch {}
+        document.body.removeChild(ta);
+      }
+    }
+
+    // Events
+    tabKgToMe.addEventListener('click', () => setMode("kg2me"));
+    tabMeToKg.addEventListener('click', () => setMode("me2kg"));
+
+    swapToMeToKg.addEventListener('click', () => setMode("me2kg"));
+    swapToKgToMe.addEventListener('click', () => setMode("kg2me"));
+
+    kgEl.addEventListener('input', update);
+    meInEl.addEventListener('input', update);
+
+    clearKgBtn.addEventListener('click', () => { kgEl.value = ''; update(); kgEl.focus(); });
+    clearMeBtn.addEventListener('click', () => { meInEl.value = ''; update(); meInEl.focus(); });
+
+    copyMeSciBtn.addEventListener('click', () => copyText(outMeRaw.textContent === '—' ? '' : outMeRaw.textContent));
+    copyKgBtn.addEventListener('click', () => copyText(outKgRaw.textContent === '—' ? '' : outKgRaw.textContent));
+
+    // Init
+    setMode("kg2me");
+  </script>
+</body>
+</html>
